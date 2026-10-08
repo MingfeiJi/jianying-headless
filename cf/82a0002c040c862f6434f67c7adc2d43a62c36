@@ -1,0 +1,21 @@
+tests/test_replay_local_draft_package.py
+  s_52d86d3775d202::t_52ba7b922ba828 1-63
+docs/LOCAL-DRAFT-BETA6.md
+  s_52d86d3775d202::t_52ba7b922ba828 16,23-25,42-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.45-trip",
+  "base_commit_sha": "cf82a0002c040c862f6434f67c7adc2d43a62c36",
+  "prompts": {},
+  "sessions": {
+    "s_52d86d3775d202": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11964-4d13-7be0-aa21-5ba436fb918e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "temptrip <temptrip@lpt035104.cn1.global.ctrip.com>"
+    }
+  }
+}
