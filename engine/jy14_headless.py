@@ -360,7 +360,8 @@ def files_manifest(folder):
     return result
 
 
-def build(plan_path, out):
+def build(plan_path, out, *, runtime_provider=nd):
+    nd = runtime_provider
     runtime = nd.doctor()
     plan = read_json(plan_path)
     assets, duration, font_assets = validate_plan(plan)
@@ -447,7 +448,7 @@ def build(plan_path, out):
               'files': files_manifest(folder), 'media_copy_policy': 'draft-owned-resources',
               'ui_preparation_used': False, 'live_written': False, 'native_ui_acceptance': 'pending'}
     write(out / 'build.json', record)
-    verify_build(out)
+    verify_build(out, runtime_provider=nd)
     return {'status': 'built', 'build': str(out), 'name': target.name, 'duration_us': duration,
             'tracks': len(plan['tracks']), 'media_files': len(assets), 'font_files': len(font_sizes), 'live_written': False,
             'native_resource_usage': [{'key': r['key'], **r['usage']} for r in native_resources if 'usage' in r],
@@ -470,8 +471,8 @@ def native_media_path(value, target):
 
 
 def verify_structure(timeline, metadata, plan, assets, target, allow_native_resource_cache=False,
-                     runtime_profile=None, font_assets=()):
-    validate_timeline_schema(timeline, runtime_profile)
+                     runtime_profile=None, font_assets=(), schema_validator=validate_timeline_schema):
+    schema_validator(timeline, runtime_profile)
     require(all(timeline['canvas_config'][k] == plan['canvas'][k] for k in ('width', 'height')), 'Canvas changed')
     require(timeline.get('fps', 30) == plan['canvas']['fps'], 'Timeline frame rate changed')
     require(metadata['draft_fold_path'] == str(target) and metadata['draft_name'] == target.name, 'Draft identity mismatch')
@@ -575,7 +576,8 @@ def verify_structure(timeline, metadata, plan, assets, target, allow_native_reso
     return native_resource_bindings
 
 
-def verify_build(out):
+def verify_build(out, *, runtime_provider=nd):
+    nd = runtime_provider
     out = Path(out).resolve(strict=True)
     record = read_json(out / 'build.json')
     require(record['schema'] == 'jy14-headless-build/v1' and record['blueprint_sha256'] == BLUEPRINT_SHA
@@ -589,7 +591,9 @@ def verify_build(out):
     timeline = h._decrypt_metadata_in_memory(out / 'draft/draft_info.json')
     metadata = h._decrypt_metadata_in_memory(out / 'draft/draft_meta_info.json')
     font_assets = fonts.recorded_assets(record, plan)
-    verify_structure(timeline, metadata, plan, record['assets'], target, font_assets=font_assets or ())
+    verify_structure(timeline, metadata, plan, record['assets'], target, font_assets=font_assets or (),
+                     runtime_profile=nd.doctor()['runtime_profile'],
+                     schema_validator=getattr(nd, 'validate_timeline_schema', validate_timeline_schema))
     if font_assets is not None:
         fonts.verify_assets(font_assets, timeline, target, out / 'draft')
     resources.verify_files(record.get('native_resources', []), out / 'draft', plan)
@@ -640,9 +644,10 @@ def copy_xattrs(source_attrs, destination, audit):
     return copied, changed
 
 
-def publish(out, audit, resume=False, verify_build_fn=None, verify_live_fn=None):
-    verify_build_fn = verify_build_fn or verify_build
-    verify_live_fn = verify_live_fn or verify_live
+def publish(out, audit, resume=False, verify_build_fn=None, verify_live_fn=None, *, runtime_provider=nd):
+    nd = runtime_provider
+    verify_build_fn = verify_build_fn or (lambda value: verify_build(value, runtime_provider=nd))
+    verify_live_fn = verify_live_fn or (lambda value: verify_live(value, runtime_provider=nd))
     out = Path(out).resolve(strict=True)
     record = verify_build_fn(out)
     h = nd.helper()
@@ -741,7 +746,8 @@ def publish(out, audit, resume=False, verify_build_fn=None, verify_live_fn=None)
         h._release_directory_transaction_lock(lock)
 
 
-def verify_live(out):
+def verify_live(out, *, runtime_provider=nd):
+    nd = runtime_provider
     out = Path(out).resolve(strict=True)
     record = read_json(out / 'build.json')
     require(record.get('runtime_manifest') == nd.MANIFEST_SHA and record.get('blueprint_sha256') == BLUEPRINT_SHA,
@@ -758,7 +764,8 @@ def verify_live(out):
     native_resource_bindings = verify_structure(timeline, metadata, plan, record['assets'], target,
                                                allow_native_resource_cache=True,
                                                runtime_profile=nd.doctor()['runtime_profile'],
-                                               font_assets=font_assets or ())
+                                               font_assets=font_assets or (),
+                                               schema_validator=getattr(nd, 'validate_timeline_schema', validate_timeline_schema))
     project = read_json(target / 'Timelines/project.json')
     require(project['main_timeline_id'] == timeline['id'], 'Project/timeline reference changed')
     mirrors = [target / 'draft_info.json', target / 'template-2.tmp',
