@@ -56,3 +56,7 @@ description: 在装有匹配版本剪映的 Apple Silicon Mac 上，无界面生
 该 Skill 与公开核心项目分别安装；只安装 Skill 不包含完整后端。
 代码许可、剪映协议、素材许可和账号权益分别适用。相关声明见
 [运行依赖与来源](references/dependencies-and-notices.md)。
+
+## 独立本机草稿实验
+
+用户明确要求评估当前 beta 构建时，可读 [本机草稿实验](references/local-draft-experiment.md)。这是另行核验的草稿入口；canonical doctor 的拒绝结果仍然保留，不将实验能力当作公开发行支持。
