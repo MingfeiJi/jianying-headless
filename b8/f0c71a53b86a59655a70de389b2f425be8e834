@@ -1,0 +1,29 @@
+tools/local_draft.py
+  s_52d86d3775d202::t_224305af0f1687 1-55
+engine/local_draft_runtime.py
+  s_52d86d3775d202::t_616117f63942f9 42-44
+  s_52d86d3775d202::t_224305af0f1687 1-41,45-203
+tests/test_local_draft_runtime.py
+  s_52d86d3775d202::t_ac22a2dd8c0b29 1-5,7-11,14,20-51
+  s_52d86d3775d202::t_616117f63942f9 6,12-13,15-19
+tools/build_local_draft_codec.py
+  s_52d86d3775d202::t_ac22a2dd8c0b29 1-74
+tests/test_local_draft_package.py
+  s_52d86d3775d202::t_615633535dcddb 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.45-trip",
+  "base_commit_sha": "b8f0c71a53b86a59655a70de389b2f425be8e834",
+  "prompts": {},
+  "sessions": {
+    "s_52d86d3775d202": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11964-4d13-7be0-aa21-5ba436fb918e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "temptrip <temptrip@lpt035104.cn1.global.ctrip.com>"
+    }
+  }
+}
